@@ -23,6 +23,13 @@ router.post('/init-db', async (req, res) => {
             ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
         `);
 
+        // Backfill timestamps for existing categories
+        await pool.query(`
+            UPDATE categories
+            SET created_at = NOW(), updated_at = NOW()
+            WHERE created_at IS NULL OR updated_at IS NULL;
+        `);
+
         console.log('✅ Categories table updated with timestamps');
 
         // Create processed_videos table
