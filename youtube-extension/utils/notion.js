@@ -535,12 +535,16 @@ class NotionIntegration {
         }
       });
 
-      blocks.push({
-        object: 'block',
-        type: 'quote',
-        quote: {
-          rich_text: [{ text: { content: videoData.comment } }]
-        }
+      // Split long comments into multiple quote blocks (2000 char limit per block)
+      const commentChunks = this.splitTextIntoChunks(videoData.comment, 2000);
+      commentChunks.forEach(chunk => {
+        blocks.push({
+          object: 'block',
+          type: 'quote',
+          quote: {
+            rich_text: [{ text: { content: chunk } }]
+          }
+        });
       });
     }
 
@@ -667,7 +671,16 @@ class NotionIntegration {
       }
 
       // Accumulate regular lines into paragraph
-      currentParagraph += (currentParagraph ? ' ' : '') + trimmed;
+      const newContent = (currentParagraph ? ' ' : '') + trimmed;
+
+      // Check if adding this line would exceed the limit
+      if (currentParagraph.length + newContent.length > 1900) {
+        // Flush current paragraph and start new one
+        blocks.push(this.createParagraphBlock(currentParagraph));
+        currentParagraph = trimmed;
+      } else {
+        currentParagraph += newContent;
+      }
     }
 
     // Add final paragraph if exists
@@ -679,20 +692,86 @@ class NotionIntegration {
   }
 
   /**
-   * Create paragraph block with text length limit
+   * Create paragraph block(s) with text length limit
+   * If text exceeds 2000 chars, returns multiple paragraph blocks
    */
   createParagraphBlock(text) {
     // Notion has a 2000 character limit per text block
     const maxLength = 2000;
-    const truncated = text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
 
+    // If text fits in one block, return single block
+    if (text.length <= maxLength) {
+      return {
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [{ text: { content: text } }]
+        }
+      };
+    }
+
+    // Text is too long - this shouldn't happen if textToBlocks is working correctly
+    // but as a safety measure, return the first 2000 chars with ellipsis
+    console.warn('[NOTION] Single paragraph exceeds 2000 chars, truncating:', text.length);
     return {
       object: 'block',
       type: 'paragraph',
       paragraph: {
-        rich_text: [{ text: { content: truncated } }]
+        rich_text: [{ text: { content: text.substring(0, maxLength - 3) + '...' } }]
       }
     };
+  }
+
+  /**
+   * Split long text into chunks respecting Notion's character limit
+   * @param {string} text - Text to split
+   * @param {number} maxLength - Maximum characters per chunk (default 2000)
+   * @returns {Array<string>} Array of text chunks
+   */
+  splitTextIntoChunks(text, maxLength = 2000) {
+    if (!text || text.length <= maxLength) {
+      return [text];
+    }
+
+    const chunks = [];
+    let remainingText = text;
+
+    while (remainingText.length > 0) {
+      if (remainingText.length <= maxLength) {
+        chunks.push(remainingText);
+        break;
+      }
+
+      // Try to split at a natural break point (paragraph, sentence, or word)
+      let splitIndex = maxLength;
+
+      // Look for paragraph break
+      const lastParagraph = remainingText.lastIndexOf('\n\n', maxLength);
+      if (lastParagraph > maxLength * 0.5) {
+        splitIndex = lastParagraph + 2;
+      } else {
+        // Look for sentence break
+        const lastSentence = Math.max(
+          remainingText.lastIndexOf('. ', maxLength),
+          remainingText.lastIndexOf('! ', maxLength),
+          remainingText.lastIndexOf('? ', maxLength)
+        );
+        if (lastSentence > maxLength * 0.5) {
+          splitIndex = lastSentence + 2;
+        } else {
+          // Look for word break
+          const lastSpace = remainingText.lastIndexOf(' ', maxLength);
+          if (lastSpace > maxLength * 0.5) {
+            splitIndex = lastSpace + 1;
+          }
+        }
+      }
+
+      chunks.push(remainingText.substring(0, splitIndex).trim());
+      remainingText = remainingText.substring(splitIndex).trim();
+    }
+
+    return chunks;
   }
 
   /**
