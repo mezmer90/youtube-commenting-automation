@@ -39,6 +39,9 @@ tmp/
 temp/
 *.tmp
 
+# Backend - has its own separate repository
+backend/
+
 # Old extensions - exclude from version control
 youtube-commenter-ai-v2/
 youtube-commenter-ai-v2.zip
