@@ -12,9 +12,27 @@
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .header { background: #2c3e50; color: white; padding: 20px 30px; border-radius: 8px 8px 0 0; }
-        .header h1 { font-size: 24px; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 14px; }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-text h1 { font-size: 24px; margin-bottom: 5px; }
+        .header-text p { opacity: 0.9; font-size: 14px; }
+        .header a {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .header a:hover { background: #229954; }
 
         .top-panel { background: #ecf0f1; padding: 20px 30px; border-bottom: 2px solid #bdc3c7; }
         .search-section { margin-bottom: 20px; }
@@ -67,8 +85,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>YouTube Video Search & Management</h1>
-            <p>Search YouTube, filter results, and bulk-add videos to categories</p>
+            <div class="header-text">
+                <h1>YouTube Video Search & Management</h1>
+                <p>Search YouTube, filter results, and bulk-add videos to categories</p>
+            </div>
+            <a href="/categories.html">📁 Manage Categories</a>
         </div>
 
         <div class="top-panel">

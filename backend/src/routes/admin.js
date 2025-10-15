@@ -334,4 +334,82 @@ router.post('/create-category', async (req, res) => {
     }
 });
 
+/**
+ * PUT /api/admin/update-category/:id
+ * Update category name
+ */
+router.put('/update-category/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+
+        if (!name || name.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'Category name is required'
+            });
+        }
+
+        console.log(`Updating category ${id} to: ${name}`);
+
+        await pool.query(`
+            UPDATE categories
+            SET name = $1, updated_at = NOW()
+            WHERE id = $2
+        `, [name, id]);
+
+        const category = await db.getCategoryById(id);
+
+        res.json({
+            success: true,
+            category
+        });
+
+    } catch (error) {
+        console.error('Error updating category:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+/**
+ * DELETE /api/admin/delete-category/:id
+ * Delete a category and its table
+ */
+router.delete('/delete-category/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const category = await db.getCategoryById(id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                error: 'Category not found'
+            });
+        }
+
+        console.log(`Deleting category: ${category.name} (${category.table_name})`);
+
+        // Drop the videos table
+        await pool.query(`DROP TABLE IF EXISTS ${category.table_name}`);
+
+        // Delete category record
+        await pool.query(`DELETE FROM categories WHERE id = $1`, [id]);
+
+        res.json({
+            success: true,
+            message: `Category "${category.name}" deleted successfully`
+        });
+
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;
