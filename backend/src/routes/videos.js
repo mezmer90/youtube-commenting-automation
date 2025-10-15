@@ -84,6 +84,17 @@ router.post('/update-status', async (req, res) => {
 
         await db.updateVideoStatus(category.table_name, video_id, updates);
 
+        // Auto-increment daily progress if video was marked as commented
+        if (commented_status === 'completed') {
+            try {
+                await db.incrementDailyProgress(category.name);
+                console.log(`✅ Incremented daily progress for category: ${category.name}`);
+            } catch (error) {
+                console.error('Error incrementing daily progress:', error);
+                // Don't fail the request if progress tracking fails
+            }
+        }
+
         res.json({
             success: true,
             message: 'Video status updated successfully'
