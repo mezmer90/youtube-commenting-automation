@@ -314,7 +314,7 @@ async function processVideoInTab(tabId, video, categoryId) {
       console.log('Promo settings:', promoSettings);
 
       const promoEnabled = promoSettings.promoEnabled !== false; // Default true
-      const promoAllowNone = promoSettings.promoAllowNone !== false; // Default true
+      const promoAllowNone = promoSettings.promoAllowNone === true; // Default false (always add promo)
 
       if (promoEnabled) {
         const defaultPromos = [
@@ -327,7 +327,7 @@ async function processVideoInTab(tabId, video, categoryId) {
         const promoTexts = promoSettings.promoTexts || defaultPromos;
 
         // Randomly decide: add promo or skip (if promoAllowNone is enabled)
-        const shouldAddPromo = promoAllowNone ? Math.random() > 0.3 : true; // 70% chance to add promo
+        const shouldAddPromo = promoAllowNone ? Math.random() > 0.3 : true; // Default: always add promo (100%)
 
         if (shouldAddPromo) {
           promo = promoTexts[Math.floor(Math.random() * promoTexts.length)];
