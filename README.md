@@ -1,7 +1,7 @@
 # YouTube Commenting Automation System
 
-> **Version:** 1.0 - Notion Complete
-> **Status:** Production Ready
+> **Version:** 1.1 - Production Ready
+> **Status:** ✅ All Systems Operational
 > **Last Updated:** 2025-10-15
 
 ## 🎯 Overview
@@ -58,7 +58,8 @@ Open: `https://your-backend-url.railway.app/admin.html`
 ## 📖 Important Documentation
 
 ### Getting Started
-- **[System State v1.0](docs/readme/SYSTEM_STATE_v1.0.md)** - Current system snapshot & restore point
+- **[System State v1.1](docs/readme/SYSTEM_STATE_v1.1.md)** - Current system snapshot & restore point
+- **[System State v1.0](docs/readme/SYSTEM_STATE_v1.0.md)** - Previous milestone (Notion complete)
 - **[Project Documentation](docs/readme/PROJECT_DOCUMENTATION.md)** - Complete feature overview
 - **[System Overview](docs/readme/SYSTEM_OVERVIEW.md)** - Architecture & workflows
 
@@ -77,11 +78,16 @@ Open: `https://your-backend-url.railway.app/admin.html`
 - **APIs**: YouTube Data API v3, Notion API v2022-06-28
 - **Hosting**: Railway (backend + database)
 
-## 🎯 Restore Point
+## 🎯 Restore Points
 
+### Current (v1.1 - Production Ready)
+**Tag:** `v1.1-production-ready`
+```bash
+git checkout v1.1-production-ready
+```
+
+### Previous (v1.0 - Notion Complete)
 **Tag:** `v1.0-notion-complete`
-
-To restore to this working state:
 ```bash
 git checkout v1.0-notion-complete
 ```
@@ -124,9 +130,13 @@ python test-all-admin-endpoints.py
 # Load unpacked → Process test video → Check logs
 ```
 
-## 📝 Recent Updates
+## 📝 Recent Updates (v1.1)
 
+- **2025-10-15**: ✅ v1.1 Production-Ready Release
+- **2025-10-15**: Fixed analytics dashboard category deduplication
+- **2025-10-15**: Made admin panel category creation fully idempotent
 - **2025-10-15**: Added YouTube 1200-word comment limit validation
+- **2025-10-15**: Organized project structure (docs/, tests/, old-extensions/)
 - **2025-10-15**: Complete v1.0 documentation & backup system
 - **2025-10-15**: Backend data integration for Notion (likes, subscribers, dates)
 - **2025-10-15**: Fixed Notion 2000-char limit with smart chunking
