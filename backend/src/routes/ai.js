@@ -4,6 +4,29 @@ const router = express.Router();
 const OpenRouterService = require('../services/openrouter-service');
 const ai = new OpenRouterService();
 
+/**
+ * Strip markdown formatting from YouTube comments
+ * Keep plain text formatting (##, -, numbered lists, timestamps)
+ * Remove: **bold**, *italic*, [links](), etc.
+ */
+function stripMarkdownForYouTube(text) {
+    if (!text) return text;
+
+    // Remove **bold**
+    text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+
+    // Remove *italic*
+    text = text.replace(/\*([^*]+)\*/g, '$1');
+
+    // Remove _italic_
+    text = text.replace(/_([^_]+)_/g, '$1');
+
+    // Remove __bold__
+    text = text.replace(/__([^_]+)__/g, '$1');
+
+    return text;
+}
+
 // POST /api/ai/summarize - Generate summary from transcript
 router.post('/summarize', async (req, res) => {
     try {
@@ -123,13 +146,14 @@ router.post('/process', async (req, res) => {
             case 'summary':
                 // For summary type: generate once, use for both Notion and YouTube
                 summary = await ai.generateSummary(transcript, metadata);
-                comment = summary; // Post full summary as comment
+                comment = stripMarkdownForYouTube(summary); // Strip markdown for YouTube
                 console.log('✅ Generated summary (used for both Notion and YouTube)');
                 break;
 
             case 'chapters':
                 // For chapters: generate chapters for YouTube, separate summary for Notion
-                comment = await ai.generateChapters(transcript, metadata);
+                const rawChapters = await ai.generateChapters(transcript, metadata);
+                comment = stripMarkdownForYouTube(rawChapters); // Strip markdown for YouTube
                 console.log('✅ Generated chapters for YouTube comment');
 
                 // Always generate full summary for Notion
@@ -139,7 +163,8 @@ router.post('/process', async (req, res) => {
 
             case 'takeaways':
                 // For takeaways: generate takeaways for YouTube, separate summary for Notion
-                comment = await ai.generateTakeaways(transcript, metadata);
+                const rawTakeaways = await ai.generateTakeaways(transcript, metadata);
+                comment = stripMarkdownForYouTube(rawTakeaways); // Strip markdown for YouTube
                 console.log('✅ Generated takeaways for YouTube comment');
 
                 // Always generate full summary for Notion
