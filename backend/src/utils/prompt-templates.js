@@ -13,7 +13,7 @@ function getSummaryPrompt(videoInfo, transcript, isChunk = false) {
     const chunkNote = isChunk ? '\n\nNote: This is part of a longer video. Focus on the content in this section while being aware it\'s part of a larger context.' : '';
     const channelName = videoInfo.channel || 'The creator';
 
-    return `Create a comprehensive, human-written summary of this YouTube video. This summary will be posted directly as a YouTube comment, so make it natural, helpful, and engaging.
+    return `You are writing a comprehensive summary of a YouTube video that will be posted as a comment. Output ONLY the summary content itself - no preamble, no meta-commentary, no introductions like "Here's a summary" or "This is a breakdown". Start directly with the content.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -59,7 +59,7 @@ Organize the summary logically based on the video content. The structure should 
 - For educational content: Main concepts with explanations
 - For discussions: Key points and arguments made
 
-This summary will be posted in full as a YouTube comment. Make it valuable, complete, and easy to scan.`;
+CRITICAL: Output ONLY the summary content. Do NOT write "Here's a summary" or "This is a breakdown" or any meta-commentary. Start immediately with the content (e.g., start with a ## header or the first point).`;
 }
 
 /**
@@ -71,7 +71,7 @@ This summary will be posted in full as a YouTube comment. Make it valuable, comp
 function getChaptersPrompt(videoInfo, transcript) {
     const channelName = videoInfo.channel || 'The creator';
 
-    return `Create a comprehensive chapter breakdown for this YouTube video. This will be posted directly as a YouTube comment to help viewers navigate the video.
+    return `You are writing a chapter breakdown for a YouTube video that will be posted as a comment. Output ONLY the chapter content itself - no preamble, no meta-commentary, no introductions like "Here's a chapter breakdown" or "Here are the timestamps". Start directly with the chapter list.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -115,7 +115,7 @@ Organize chapters to match the natural flow of the video. Adapt the structure ba
 - For discussions: Chapters for intro, main topics discussed, conclusion
 - For reviews: Chapters for intro, features, pros/cons, verdict
 
-This chapter breakdown will be posted in full as a YouTube comment. Make it valuable and easy to navigate.`;
+CRITICAL: Output ONLY the chapter breakdown. Do NOT write "Here's a chapter breakdown" or "Here are the timestamps" or any meta-commentary. Start immediately with the ## header and chapter list.`;
 }
 
 /**
@@ -127,7 +127,7 @@ This chapter breakdown will be posted in full as a YouTube comment. Make it valu
 function getTakeawaysPrompt(videoInfo, transcript) {
     const channelName = videoInfo.channel || 'The creator';
 
-    return `Extract all the valuable and actionable takeaways from this YouTube video. This will be posted directly as a YouTube comment to help viewers quickly understand the key points.
+    return `You are writing a list of key takeaways from a YouTube video that will be posted as a comment. Output ONLY the takeaways content itself - no preamble, no meta-commentary, no introductions like "Here are the key takeaways" or "Here's what I learned". Start directly with the takeaway list.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -165,7 +165,7 @@ STRUCTURE:
 Format as a numbered list with timestamps. Each entry should follow this pattern:
 1. [TIMESTAMP] Main takeaway - Brief explanation or context
 
-Make it comprehensive and valuable. This will be posted in full as a YouTube comment.`;
+CRITICAL: Output ONLY the takeaways list. Do NOT write "Here are the key takeaways" or "Here's what I learned" or any meta-commentary. Start immediately with the ## header and numbered list.`;
 }
 
 // NOTE: getCommentPrompt() has been removed
