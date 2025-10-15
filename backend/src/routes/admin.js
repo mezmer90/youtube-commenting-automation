@@ -183,6 +183,7 @@ router.post('/bulk-add', async (req, res) => {
         }
 
         console.log(`📥 Bulk adding ${videos.length} videos to ${category.name}`);
+        console.log('First video sample:', JSON.stringify(videos[0], null, 2));
 
         // Check for existing videos
         const videoIds = videos.map(v => v.video_id);
@@ -244,6 +245,8 @@ router.post('/bulk-add', async (req, res) => {
 
             } catch (error) {
                 console.error(`Error inserting video ${video.video_id}:`, error.message);
+                console.error('Video data:', JSON.stringify(video, null, 2));
+                console.error('Full error:', error);
                 errors++;
             }
         }
@@ -262,9 +265,11 @@ router.post('/bulk-add', async (req, res) => {
 
     } catch (error) {
         console.error('Error in bulk add:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
