@@ -27,6 +27,15 @@ function stripMarkdownForYouTube(text) {
     return text;
 }
 
+/**
+ * Count words in text
+ * YouTube has a 1200-word limit for comments
+ */
+function countWords(text) {
+    if (!text) return 0;
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
 // POST /api/ai/summarize - Generate summary from transcript
 router.post('/summarize', async (req, res) => {
     try {
@@ -171,6 +180,19 @@ router.post('/process', async (req, res) => {
                 summary = await ai.generateSummary(transcript, metadata);
                 console.log('✅ Generated summary for Notion database');
                 break;
+        }
+
+        // Check word count and condense if needed (YouTube 1200-word limit)
+        const wordCount = countWords(comment);
+        console.log(`📊 Comment word count: ${wordCount} words`);
+
+        if (wordCount > 1200) {
+            console.log('⚠️  Comment exceeds 1200 words, condensing...');
+            comment = await ai.condenseComment(comment, 1200);
+            // Strip markdown again after condensing (in case AI added any)
+            comment = stripMarkdownForYouTube(comment);
+            const newWordCount = countWords(comment);
+            console.log(`✅ Comment condensed: ${wordCount} → ${newWordCount} words`);
         }
 
         res.json({

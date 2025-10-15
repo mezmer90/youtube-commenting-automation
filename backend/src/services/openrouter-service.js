@@ -146,6 +146,34 @@ Instructions:
     // No conversion step needed
 
     /**
+     * Condense comment to meet YouTube's 1200-word limit
+     * @param {string} comment - Original comment text
+     * @param {number} maxWords - Maximum word count (default: 1200)
+     * @returns {Promise<string>} - Condensed comment under word limit
+     */
+    async condenseComment(comment, maxWords = 1200) {
+        // Count words in original
+        const originalWords = comment.trim().split(/\s+/).filter(word => word.length > 0).length;
+
+        console.log(`📏 Condensing comment from ${originalWords} words to under ${maxWords} words`);
+
+        const prompt = `You are given a YouTube comment that exceeds the maximum length. Please condense it to under ${maxWords} words while:
+
+1. Keeping the EXACT same format (numbered lists, bullet points, timestamps, structure)
+2. Preserving all key points and insights
+3. Maintaining the same tone and style
+4. Keeping it engaging and valuable
+5. NOT adding any markdown formatting (no **bold**, *italic*, etc.)
+
+Original comment (${originalWords} words):
+${comment}
+
+Provide ONLY the condensed version (under ${maxWords} words), with no additional commentary:`;
+
+        return await this.callAPI(prompt);
+    }
+
+    /**
      * Call OpenRouter API
      * @param {string} prompt - The prompt to send
      * @param {object} options - Additional options
