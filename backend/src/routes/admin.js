@@ -10,12 +10,22 @@ const db = new DatabaseService();
 
 /**
  * POST /api/admin/init-db
- * Initialize processed_videos tracking table
+ * Initialize processed_videos tracking table and update categories table
  */
 router.post('/init-db', async (req, res) => {
     try {
-        console.log('Initializing processed_videos table...');
+        console.log('Initializing database tables...');
 
+        // Add timestamp columns to categories table if they don't exist
+        await pool.query(`
+            ALTER TABLE categories
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+            ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+        `);
+
+        console.log('✅ Categories table updated with timestamps');
+
+        // Create processed_videos table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS processed_videos (
                 id SERIAL PRIMARY KEY,
@@ -35,10 +45,10 @@ router.post('/init-db', async (req, res) => {
 
         res.json({
             success: true,
-            message: 'processed_videos table initialized successfully'
+            message: 'Database tables initialized successfully'
         });
     } catch (error) {
-        console.error('Error initializing processed_videos:', error);
+        console.error('Error initializing database:', error);
         res.status(500).json({
             success: false,
             error: error.message

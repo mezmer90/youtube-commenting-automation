@@ -314,7 +314,13 @@
             }
 
             tbody.innerHTML = categories.map(cat => {
-                const createdDate = new Date(cat.created_at).toLocaleDateString();
+                let createdDate = 'N/A';
+                if (cat.created_at) {
+                    const date = new Date(cat.created_at);
+                    if (!isNaN(date.getTime())) {
+                        createdDate = date.toLocaleDateString();
+                    }
+                }
 
                 return `
                     <tr>
