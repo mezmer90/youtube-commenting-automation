@@ -207,14 +207,15 @@ router.post('/bulk-add', async (req, res) => {
         // Insert new videos
         for (const video of newVideos) {
             try {
-                // Insert into category table
-                await pool.query(`
+                // Insert into category table and check if row was actually inserted
+                const insertResult = await pool.query(`
                     INSERT INTO ${category.table_name} (
                         video_id, url, title, channel_name, channel_url,
                         channel_subscriber_count, view_count, likes, duration,
                         thumbnail_url, upload_date, description, tags
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                     ON CONFLICT (video_id) DO NOTHING
+                    RETURNING video_id
                 `, [
                     video.video_id,
                     video.url,
@@ -231,17 +232,23 @@ router.post('/bulk-add', async (req, res) => {
                     video.tags || []
                 ]);
 
-                // Track in processed_videos
-                await pool.query(`
-                    INSERT INTO processed_videos (video_id, categories, first_added_to_category)
-                    VALUES ($1, ARRAY[$2], $2)
-                    ON CONFLICT (video_id) DO UPDATE
-                    SET categories = array_append(processed_videos.categories, $2),
-                        updated_at = NOW()
-                    WHERE NOT ($2 = ANY(processed_videos.categories))
-                `, [video.video_id, category.name]);
+                // Only count as inserted if a row was actually added
+                if (insertResult.rowCount > 0) {
+                    // Track in processed_videos
+                    await pool.query(`
+                        INSERT INTO processed_videos (video_id, categories, first_added_to_category)
+                        VALUES ($1, ARRAY[$2], $2)
+                        ON CONFLICT (video_id) DO UPDATE
+                        SET categories = array_append(processed_videos.categories, $2),
+                            updated_at = NOW()
+                        WHERE NOT ($2 = ANY(processed_videos.categories))
+                    `, [video.video_id, category.name]);
 
-                inserted++;
+                    inserted++;
+                } else {
+                    // Video already existed in this category table
+                    skipped++;
+                }
 
             } catch (error) {
                 console.error(`Error inserting video ${video.video_id}:`, error.message);
