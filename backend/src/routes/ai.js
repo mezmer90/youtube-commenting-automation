@@ -88,40 +88,13 @@ router.post('/takeaways', async (req, res) => {
     }
 });
 
-// POST /api/ai/comment - Generate YouTube comment
+// POST /api/ai/comment - DEPRECATED
+// Comments are now the full summary/chapters/takeaways content (no conversion)
 router.post('/comment', async (req, res) => {
-    try {
-        const { summary, type, metadata } = req.body;
-
-        if (!summary) {
-            return res.status(400).json({
-                success: false,
-                error: 'summary is required'
-            });
-        }
-
-        if (!type || !['summary', 'chapters', 'takeaways'].includes(type)) {
-            return res.status(400).json({
-                success: false,
-                error: 'type must be one of: summary, chapters, takeaways'
-            });
-        }
-
-        const comment = await ai.generateComment(summary, type, metadata || {});
-
-        res.json({
-            success: true,
-            comment,
-            type,
-            metadata: metadata || {}
-        });
-    } catch (error) {
-        console.error('Error generating comment:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    res.status(410).json({
+        success: false,
+        error: 'This endpoint is deprecated. Use /api/ai/process instead. Comments are now the full generated content.'
+    });
 });
 
 // POST /api/ai/process - Complete processing (summary + comment)
@@ -142,31 +115,42 @@ router.post('/process', async (req, res) => {
 
         console.log(`🎲 Processing video with type: ${selectedType}`);
 
-        let summary, content;
+        let summary, comment;
 
         // Generate content based on type
         switch (selectedType) {
             case 'summary':
+                // For summary type: generate once, use for both Notion and YouTube
                 summary = await ai.generateSummary(transcript, metadata);
-                content = summary;
+                comment = summary; // Post full summary as comment
+                console.log('✅ Generated summary (used for both Notion and YouTube)');
                 break;
+
             case 'chapters':
-                content = await ai.generateChapters(transcript, metadata);
-                summary = content; // Use chapters as summary for storage
+                // For chapters: generate chapters for YouTube, separate summary for Notion
+                comment = await ai.generateChapters(transcript, metadata);
+                console.log('✅ Generated chapters for YouTube comment');
+
+                // Always generate full summary for Notion
+                summary = await ai.generateSummary(transcript, metadata);
+                console.log('✅ Generated summary for Notion database');
                 break;
+
             case 'takeaways':
-                content = await ai.generateTakeaways(transcript, metadata);
-                summary = content; // Use takeaways as summary for storage
+                // For takeaways: generate takeaways for YouTube, separate summary for Notion
+                comment = await ai.generateTakeaways(transcript, metadata);
+                console.log('✅ Generated takeaways for YouTube comment');
+
+                // Always generate full summary for Notion
+                summary = await ai.generateSummary(transcript, metadata);
+                console.log('✅ Generated summary for Notion database');
                 break;
         }
 
-        // Generate comment
-        const comment = await ai.generateComment(content, selectedType, metadata);
-
         res.json({
             success: true,
-            summary,
-            comment,
+            summary,           // Always a full summary for Notion
+            comment,           // Full content (summary/chapters/takeaways) for YouTube
             comment_type: selectedType,
             metadata: metadata || {}
         });

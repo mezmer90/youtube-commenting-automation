@@ -11,8 +11,9 @@
  */
 function getSummaryPrompt(videoInfo, transcript, isChunk = false) {
     const chunkNote = isChunk ? '\n\nNote: This is part of a longer video. Focus on the content in this section while being aware it\'s part of a larger context.' : '';
+    const channelName = videoInfo.channel || 'The creator';
 
-    return `Create a comprehensive bullet-point summary of this YouTube video with timestamps and actionable takeaways.
+    return `Create a comprehensive, human-written summary of this YouTube video. This summary will be posted directly as a YouTube comment, so make it natural, helpful, and engaging.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -24,14 +25,41 @@ ${chunkNote}
 Raw YouTube transcript data:
 ${transcript}
 
-Instructions:
-1. Format your response in clean markdown
-2. Include 10-20 key points from the video, each with its relevant timestamp
-3. For each main point, add 1-3 actionable takeaways or practical applications
-4. Highlight important quotes, facts, or statistics when relevant
-5. End with a "Key Takeaways" section of 3-5 bullet points summarizing the most practical information
-6. Keep the formatting clean and consistent for easy reading
-7. Focus on information that would be most useful to someone wanting to implement the content`;
+WRITING STYLE REQUIREMENTS:
+- Write naturally like a human, not an AI
+- Use simple, clear English (Grade 10-12 reading level)
+- Write in third person perspective (e.g., "This video covers...", "${channelName} explains...", "The creator discusses...")
+- Refer to the channel/creator by name when relevant: "${channelName} is saying..." or "${channelName} mentions..."
+- NO AI-sounding words: avoid "delve", "leverage", "moreover", "furthermore", "comprehensive", "robust", "utilize", "facilitate", "elucidate", "here's the kicker"
+- Sound conversational and genuine
+
+FORMATTING REQUIREMENTS:
+- Use ## for section headers (e.g., ## Key Points, ## Main Takeaways)
+- Use - for bullet points (not • or other symbols)
+- Include timestamps in [MM:SS] or [HH:MM:SS] format for every relevant point
+- Use numbered lists (1., 2., 3.) where appropriate
+- Use simple, classy emojis sparingly (✓, →, ⏰, 📌, etc.)
+- NO markdown styling like **bold** or *italic*
+- Keep formatting clean and easy to read
+
+CONTENT REQUIREMENTS:
+- Cover ALL important points from the video - don't limit yourself to a specific number
+- If the video has steps (how-to), include ALL steps with timestamps
+- If the video is a listicle, include ALL list items with timestamps
+- If the video has key concepts, include ALL of them with explanations
+- Include direct quotes when impactful
+- Highlight important statistics, facts, or data points
+- Add actionable takeaways where relevant
+- Ensure every major point has a timestamp
+
+STRUCTURE:
+Organize the summary logically based on the video content. The structure should adapt to the video type:
+- For how-to videos: Step-by-step breakdown with timestamps
+- For listicles: Complete list with all items
+- For educational content: Main concepts with explanations
+- For discussions: Key points and arguments made
+
+This summary will be posted in full as a YouTube comment. Make it valuable, complete, and easy to scan.`;
 }
 
 /**
@@ -41,7 +69,9 @@ Instructions:
  * @returns {string} Formatted prompt
  */
 function getChaptersPrompt(videoInfo, transcript) {
-    return `Analyze this YouTube video transcript and create a detailed chapter breakdown with timestamps.
+    const channelName = videoInfo.channel || 'The creator';
+
+    return `Create a comprehensive chapter breakdown for this YouTube video. This will be posted directly as a YouTube comment to help viewers navigate the video.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -51,24 +81,41 @@ Duration: ${videoInfo.duration || 'Unknown'}
 Transcript with timestamps:
 ${transcript}
 
-Instructions:
-1. Identify 5-8 meaningful chapters based on topic changes and content flow
-2. Format each chapter as: [TIMESTAMP] - Chapter Title
-3. Use timestamps from the transcript (format: MM:SS or HH:MM:SS)
-4. Each chapter title should be clear and descriptive (5-10 words)
-5. Add a brief 1-2 sentence description under each chapter explaining what's covered
-6. Start with 0:00 for Introduction (or earliest timestamp)
-7. Ensure chapters flow logically and cover the entire video
+WRITING STYLE REQUIREMENTS:
+- Write naturally like a human, not an AI
+- Use simple, clear English (Grade 10-12 reading level)
+- Write in third person perspective (e.g., "${channelName} explains...", "The video covers...")
+- Refer to the creator by name when relevant: "${channelName}"
+- NO AI-sounding words: avoid "delve", "leverage", "moreover", "furthermore", "comprehensive", "robust", "utilize", "facilitate", "elucidate", "here's the kicker"
+- Sound conversational and helpful
 
-Example format:
-0:00 - Introduction and Overview
-Brief intro about the topic and what will be covered
+FORMATTING REQUIREMENTS:
+- Use ## for the main header (e.g., ## Chapter Breakdown)
+- Format each chapter as: [MM:SS] Chapter Title
+- Use - for bullet points if adding descriptions
+- Use simple, classy emojis sparingly (⏰, 📌, →, etc.)
+- NO markdown styling like **bold** or *italic*
+- Keep it clean and easy to scan
 
-2:30 - Main Concept Explained
-Detailed explanation of the core concept
+CONTENT REQUIREMENTS:
+- Include ALL meaningful chapters - don't limit yourself to a specific number
+- For listicle videos: Create a chapter for each list item
+- For how-to videos: Create a chapter for each step/section
+- For educational videos: Create chapters based on natural topic changes
+- Start with [0:00] for Introduction or earliest timestamp
+- Each chapter title should be clear and descriptive (5-12 words)
+- Add a brief 1-2 sentence description under each chapter explaining what's covered
+- Ensure chapters cover the entire video from start to finish
+- Use actual timestamps from the transcript
 
-5:45 - Practical Application
-Real-world examples and how to apply the concept`;
+STRUCTURE:
+Organize chapters to match the natural flow of the video. Adapt the structure based on video type:
+- For listicles: One chapter per list item
+- For tutorials: Chapters for intro, setup, each step, conclusion
+- For discussions: Chapters for intro, main topics discussed, conclusion
+- For reviews: Chapters for intro, features, pros/cons, verdict
+
+This chapter breakdown will be posted in full as a YouTube comment. Make it valuable and easy to navigate.`;
 }
 
 /**
@@ -78,7 +125,9 @@ Real-world examples and how to apply the concept`;
  * @returns {string} Formatted prompt
  */
 function getTakeawaysPrompt(videoInfo, transcript) {
-    return `Extract the most valuable and actionable takeaways from this YouTube video transcript.
+    const channelName = videoInfo.channel || 'The creator';
+
+    return `Extract all the valuable and actionable takeaways from this YouTube video. This will be posted directly as a YouTube comment to help viewers quickly understand the key points.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -87,84 +136,41 @@ Channel: ${videoInfo.channel || 'Unknown'}
 Transcript:
 ${transcript}
 
-Instructions:
-1. Identify the Top 5-7 Key Takeaways from the video
-2. Each takeaway should be 1-2 sentences
-3. Focus on actionable insights, practical advice, and important concepts
-4. Include relevant timestamps where these points are discussed
-5. Prioritize information that viewers can immediately apply
-6. Format as a clear numbered list
-7. Be concise but comprehensive
+WRITING STYLE REQUIREMENTS:
+- Write naturally like a human, not an AI
+- Use simple, clear English (Grade 10-12 reading level)
+- Write in third person perspective (e.g., "${channelName} explains...", "The video covers...")
+- Refer to the creator by name when relevant: "${channelName}"
+- NO AI-sounding words: avoid "delve", "leverage", "moreover", "furthermore", "comprehensive", "robust", "utilize", "facilitate", "elucidate", "here's the kicker"
+- Sound conversational and helpful
 
-Example format:
-1. [TIMESTAMP] Main takeaway here - Additional context or explanation
-2. [TIMESTAMP] Another key point - Why it matters
-...`;
+FORMATTING REQUIREMENTS:
+- Use ## for the main header (e.g., ## Key Takeaways)
+- Use numbered lists (1., 2., 3.) for each takeaway
+- Include timestamps in [MM:SS] or [HH:MM:SS] format for every point
+- Use simple, classy emojis sparingly (✓, →, 📌, 💡, etc.)
+- NO markdown styling like **bold** or *italic*
+- Keep it clean and easy to read
+
+CONTENT REQUIREMENTS:
+- Include ALL important takeaways - don't limit yourself to a specific number
+- Each takeaway should be 1-2 sentences with clear value
+- Focus on actionable insights and practical advice
+- Include relevant timestamps where each point is discussed
+- Prioritize information viewers can immediately apply
+- Include key concepts, strategies, tips, and insights
+- Add context or explanation for why each point matters
+
+STRUCTURE:
+Format as a numbered list with timestamps. Each entry should follow this pattern:
+1. [TIMESTAMP] Main takeaway - Brief explanation or context
+
+Make it comprehensive and valuable. This will be posted in full as a YouTube comment.`;
 }
 
-/**
- * Get comment generation prompt for YouTube
- * @param {string} content - The summary/chapters/takeaways content
- * @param {string} type - Type of comment (summary, chapters, takeaways)
- * @param {object} videoInfo - Video metadata
- * @returns {string} Formatted prompt
- */
-function getCommentPrompt(content, type, videoInfo = {}) {
-    let specificInstructions = '';
-
-    switch (type) {
-        case 'summary':
-            specificInstructions = `Create a helpful YouTube comment based on this video summary.
-
-Video: ${videoInfo.title || 'Unknown'}
-Summary Content:
-${content}
-
-Requirements:
-- 3-5 sentences maximum
-- Highlight the main value of the video
-- Sound natural and conversational
-- Be encouraging and supportive
-- Express genuine appreciation for the content
-- Don't mention that you read a summary - write as if you watched the video`;
-            break;
-
-        case 'chapters':
-            specificInstructions = `Create a YouTube comment with chapter timestamps to help viewers navigate this video.
-
-Video: ${videoInfo.title || 'Unknown'}
-Chapter Breakdown:
-${content}
-
-Requirements:
-- Start with a friendly intro line like "📍 Chapter Breakdown:" or "⏱️ Timestamps:"
-- List each chapter with its timestamp in format [MM:SS] - Chapter Title
-- Keep it clean, organized, and easy to scan
-- Add a closing line expressing appreciation
-- Maximum 8-10 chapters for readability`;
-            break;
-
-        case 'takeaways':
-            specificInstructions = `Create a YouTube comment highlighting key takeaways from this video.
-
-Video: ${videoInfo.title || 'Unknown'}
-Takeaways:
-${content}
-
-Requirements:
-- Start with an engaging intro like "💡 Key Takeaways:" or "📝 Quick Summary:"
-- List 3-5 most important takeaways (numbered or bulleted)
-- Each point should be 1 line maximum
-- End with a positive closing statement
-- Make it valuable and easy to read quickly`;
-            break;
-
-        default:
-            throw new Error(`Unknown comment type: ${type}`);
-    }
-
-    return specificInstructions;
-}
+// NOTE: getCommentPrompt() has been removed
+// The full summary/chapters/takeaways content is now posted directly as YouTube comments
+// No conversion step needed - we post the complete generated content as-is
 
 /**
  * Get chunk combination prompt (for multi-chunk processing)
@@ -173,7 +179,9 @@ Requirements:
  * @returns {string} Formatted prompt
  */
 function getCombinePrompt(chunkSummaries, videoInfo = {}) {
-    return `You have received multiple summaries of different parts of a YouTube video. Please combine them into a single, coherent, and comprehensive summary.
+    const channelName = videoInfo.channel || 'The creator';
+
+    return `You have received multiple summaries from different parts of a YouTube video. Your task is to combine them into ONE seamless, cohesive, and complete summary that reads naturally from start to finish.
 
 Video information:
 Title: ${videoInfo.title || 'Unknown'}
@@ -186,22 +194,37 @@ ${chunkSummaries.map((summary, index) => `
 ${summary}
 `).join('\n')}
 
-Instructions:
-1. Create a unified overview that captures the entire video flow
-2. Organize key points logically by theme/topic (not by chunk order)
-3. Remove any duplicate or redundant information
-4. Preserve important timestamps from all parts
-5. Create cohesive "Key Takeaways" section synthesizing insights from all parts
-6. Ensure the final summary flows naturally as if it was created from the whole video at once
-7. Format in clean, structured markdown
+CRITICAL REQUIREMENTS:
+1. The final output MUST read as ONE unified summary, not separate chunks merged together
+2. Remove ALL references to "Part 1", "Part 2", "chunk", "section" - this should feel like one complete summary
+3. Organize content logically by theme/topic/chronology - NOT by chunk order
+4. Remove any duplicate or overlapping information across chunks
+5. Preserve ALL important timestamps from all parts
+6. Ensure smooth transitions between topics - no abrupt breaks that reveal chunk boundaries
+7. Keep ALL important information - don't lose any valuable content while combining
 
-The final output should read as one comprehensive summary, not separate parts merged together.`;
+WRITING STYLE:
+- Write naturally like a human, not an AI
+- Use simple, clear English (Grade 10-12 reading level)
+- Write in third person perspective (e.g., "${channelName} explains...", "The video covers...")
+- NO AI-sounding words: avoid "delve", "leverage", "moreover", "furthermore", "comprehensive", "robust", "utilize", "facilitate", "elucidate", "here's the kicker"
+- Sound conversational and genuine
+
+FORMATTING:
+- Use ## for section headers
+- Use - for bullet points
+- Use numbered lists (1., 2., 3.) where appropriate
+- Include ALL timestamps in [MM:SS] or [HH:MM:SS] format
+- Use simple, classy emojis sparingly (✓, →, ⏰, 📌, etc.)
+- NO markdown styling like **bold** or *italic*
+
+The final output should look exactly like it was created from the complete video in one pass - completely seamless with no evidence of chunking. Make it valuable, complete, and natural.`;
 }
 
 module.exports = {
     getSummaryPrompt,
     getChaptersPrompt,
     getTakeawaysPrompt,
-    getCommentPrompt,
     getCombinePrompt
+    // Note: getCommentPrompt removed - we now post full content directly
 };

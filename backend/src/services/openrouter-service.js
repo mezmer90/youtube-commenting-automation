@@ -5,7 +5,6 @@ const {
     getSummaryPrompt,
     getChaptersPrompt,
     getTakeawaysPrompt,
-    getCommentPrompt,
     getCombinePrompt
 } = require('../utils/prompt-templates');
 
@@ -142,22 +141,9 @@ Instructions:
         return finalTakeaways;
     }
 
-    /**
-     * Generate YouTube comment from summary using proven templates
-     * @param {string} summary - Video summary
-     * @param {string} type - Comment type (summary, chapters, takeaways)
-     * @param {object} metadata - Video metadata
-     * @returns {Promise<string>} - Generated comment
-     */
-    async generateComment(summary, type, metadata = {}) {
-        console.log(`💬 Generating ${type} comment for: ${metadata.title || 'Unknown'}`);
-
-        const prompt = getCommentPrompt(summary, type, metadata);
-        const comment = await this.callAPI(prompt);
-
-        console.log('✅ Comment generation complete');
-        return comment;
-    }
+    // NOTE: generateComment() method removed
+    // We now post the full summary/chapters/takeaways directly as YouTube comments
+    // No conversion step needed
 
     /**
      * Call OpenRouter API
