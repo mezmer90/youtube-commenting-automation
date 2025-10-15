@@ -112,7 +112,6 @@
                 <h3>➕ Create New Category</h3>
                 <div class="form-row">
                     <input type="text" id="newCategoryName" placeholder="Category name (e.g., 'Fitness & Health')" />
-                    <input type="number" id="newCategoryThreshold" placeholder="Min view threshold" value="100000" />
                     <button id="createCategoryBtn" onclick="createCategory()">Create Category</button>
                 </div>
             </div>
@@ -177,7 +176,6 @@
 
         async function createCategory() {
             const name = document.getElementById('newCategoryName').value.trim();
-            const threshold = parseInt(document.getElementById('newCategoryThreshold').value) || 100000;
 
             if (!name) {
                 alert('Please enter a category name');
@@ -194,7 +192,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name: name,
-                        min_view_threshold: threshold
+                        min_view_threshold: 0
                     })
                 });
 
@@ -208,7 +206,6 @@
 
                 // Clear form and reload categories
                 document.getElementById('newCategoryName').value = '';
-                document.getElementById('newCategoryThreshold').value = '100000';
                 await loadCategories();
 
             } catch (error) {
