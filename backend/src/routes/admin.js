@@ -437,6 +437,22 @@ router.delete('/delete-category/:id', async (req, res) => {
 
         console.log(`Deleting category: ${category.name} (${category.table_name})`);
 
+        // Clean up processed_videos table first (remove this category from all entries)
+        await pool.query(`
+            UPDATE processed_videos
+            SET categories = array_remove(categories, $1),
+                updated_at = NOW()
+            WHERE $1 = ANY(categories)
+        `, [category.name]);
+
+        // Delete entries that have no categories left (orphaned videos)
+        const deletedResult = await pool.query(`
+            DELETE FROM processed_videos
+            WHERE categories = '{}' OR array_length(categories, 1) IS NULL
+        `);
+
+        console.log(`✅ Cleaned up processed_videos: removed ${deletedResult.rowCount} orphaned entries`);
+
         // Drop the videos table
         await pool.query(`DROP TABLE IF EXISTS ${category.table_name}`);
 
