@@ -12,26 +12,57 @@ console.log('YouTube Commenter Extension: Background service worker started');
 /**
  * Get or create Notion database for a category
  * This is the SMART logic that manages category-specific databases
+ * CROSS-DEVICE: Checks backend before creating to prevent duplicates
  */
 async function getOrCreateNotionDatabase(categoryId, categoryName, parentPageId, apiKey) {
   try {
     console.log(`[NOTION DB] Checking database for category: ${categoryName} (ID: ${categoryId})`);
 
-    // Check if this category already has a database
-    const existingDatabase = await StorageManager.getCategoryNotionDatabase(categoryId);
+    // STEP 1: Check Chrome local storage first (fastest)
+    const localDatabase = await StorageManager.getCategoryNotionDatabase(categoryId);
 
-    if (existingDatabase && existingDatabase.databaseId) {
-      console.log(`[NOTION DB] ✅ Found existing database: ${existingDatabase.databaseName}`);
-      console.log(`[NOTION DB] Database ID: ${existingDatabase.databaseId}`);
+    if (localDatabase && localDatabase.databaseId) {
+      console.log(`[NOTION DB] ✅ Found in local storage: ${localDatabase.databaseName}`);
+      console.log(`[NOTION DB] Database ID: ${localDatabase.databaseId}`);
       return {
         success: true,
-        databaseId: existingDatabase.databaseId,
-        databaseName: existingDatabase.databaseName,
-        isNew: false
+        databaseId: localDatabase.databaseId,
+        databaseName: localDatabase.databaseName,
+        isNew: false,
+        source: 'local'
       };
     }
 
-    // No database exists for this category → CREATE NEW ONE
+    // STEP 2: Not in local storage → Check backend (cross-device persistence)
+    console.log(`[NOTION DB] Not in local storage, checking backend...`);
+    try {
+      const categoryData = await api.getCategoryById(categoryId);
+
+      if (categoryData.success && categoryData.category.notion_database_id) {
+        const backendDatabaseId = categoryData.category.notion_database_id;
+        const backendDatabaseName = categoryData.category.notion_database_name;
+
+        console.log(`[NOTION DB] ✅ Found in backend: ${backendDatabaseName}`);
+        console.log(`[NOTION DB] Database ID: ${backendDatabaseId}`);
+
+        // Store in local Chrome storage for future use
+        await StorageManager.setNotionDatabase(categoryId, backendDatabaseId, backendDatabaseName);
+        console.log(`[NOTION DB] ✅ Synced to local storage`);
+
+        return {
+          success: true,
+          databaseId: backendDatabaseId,
+          databaseName: backendDatabaseName,
+          isNew: false,
+          source: 'backend'
+        };
+      }
+    } catch (backendError) {
+      console.warn(`[NOTION DB] ⚠️ Backend check failed (non-blocking):`, backendError.message);
+      // Continue to create new database if backend check fails
+    }
+
+    // STEP 3: Not found anywhere → CREATE NEW DATABASE
     console.log(`[NOTION DB] ⚡ No database found for category "${categoryName}". Creating new database...`);
 
     const notion = new NotionIntegration(apiKey, null);
@@ -49,18 +80,16 @@ async function getOrCreateNotionDatabase(categoryId, categoryName, parentPageId,
     console.log(`[NOTION DB] Database ID: ${newDatabaseId}`);
     console.log(`[NOTION DB] Database URL: ${createResult.database.url}`);
 
-    // Store mapping in Chrome storage
+    // STEP 4: Store mapping in BOTH Chrome storage AND backend
     await StorageManager.setNotionDatabase(categoryId, newDatabaseId, databaseName);
-    console.log(`[NOTION DB] ✅ Stored mapping: Category ${categoryId} → Database ${newDatabaseId}`);
+    console.log(`[NOTION DB] ✅ Stored in local storage`);
 
-    // Sync with backend for cross-device persistence
-    console.log(`[NOTION DB] Syncing database mapping with backend...`);
     try {
       await api.syncNotionDatabase(categoryId, newDatabaseId, databaseName);
-      console.log(`[NOTION DB] ✅ Synced with backend successfully`);
+      console.log(`[NOTION DB] ✅ Synced to backend (cross-device persistence enabled)`);
     } catch (syncError) {
       console.error(`[NOTION DB] ⚠️ Failed to sync with backend (non-blocking):`, syncError.message);
-      // Continue even if backend sync fails - Chrome storage is primary
+      // Continue even if backend sync fails - local storage is functional
     }
 
     return {
@@ -68,7 +97,8 @@ async function getOrCreateNotionDatabase(categoryId, categoryName, parentPageId,
       databaseId: newDatabaseId,
       databaseName: databaseName,
       databaseUrl: createResult.database.url,
-      isNew: true
+      isNew: true,
+      source: 'created'
     };
 
   } catch (error) {
