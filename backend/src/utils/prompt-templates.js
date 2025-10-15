@@ -37,7 +37,7 @@ WRITING STYLE REQUIREMENTS:
 FORMATTING REQUIREMENTS - CRITICAL:
 - Use ## for section headers (e.g., ## Key Points, ## Main Takeaways)
 - Use - for bullet points (not • or other symbols)
-- Include timestamps in [MM:SS] or [HH:MM:SS] format for every relevant point
+- Include timestamps in MM:SS or HH:MM:SS format (no brackets) for every relevant point
 - Use numbered lists (1., 2., 3.) where appropriate
 - Use simple, classy emojis sparingly (✓, →, ⏰, 📌, etc.)
 - ABSOLUTELY NO **bold** OR *italic* MARKDOWN - this looks ugly in YouTube comments
@@ -98,7 +98,7 @@ WRITING STYLE REQUIREMENTS:
 
 FORMATTING REQUIREMENTS - CRITICAL:
 - Start with a simple intro: "This video covers these chapters:" (or similar)
-- Format each chapter as: [MM:SS] Chapter Title
+- Format each chapter as: MM:SS Chapter Title (no brackets around timestamp)
 - Use - for bullet points if adding descriptions
 - Use simple, classy emojis sparingly (⏰, 📌, →, etc.)
 - ABSOLUTELY NO **bold** OR *italic* MARKDOWN - this looks ugly in YouTube comments
@@ -110,7 +110,7 @@ CONTENT DEPTH REQUIREMENTS:
 - For listicle videos: Create a chapter for each list item
 - For how-to videos: Create a chapter for each step/section
 - For educational videos: Create chapters based on natural topic changes
-- Start with [0:00] for Introduction or earliest timestamp
+- Start with 0:00 for Introduction or earliest timestamp (no brackets)
 - Each chapter title should be clear and descriptive (5-12 words)
 - Add a detailed 2-3 sentence description under each chapter explaining what's covered with full context
 - Ensure chapters cover the entire video from start to finish
@@ -157,7 +157,7 @@ WRITING STYLE REQUIREMENTS:
 FORMATTING REQUIREMENTS - CRITICAL:
 - Start with a simple intro line: "This video covers these key takeaways:" (or similar professional phrasing)
 - Use numbered lists (1., 2., 3.) for each takeaway
-- Include timestamps in [MM:SS] or [HH:MM:SS] format for every point
+- Include timestamps in MM:SS or HH:MM:SS format (no brackets) for every point
 - Use simple, classy emojis sparingly (✓, →, 📌, 💡, etc.)
 - ABSOLUTELY NO **bold** OR *italic* MARKDOWN - this looks ugly in YouTube comments
 - Do NOT use asterisks for emphasis - write plain text only
@@ -177,7 +177,7 @@ CONTENT DEPTH REQUIREMENTS - MAKE IT RICH AND DETAILED:
 STRUCTURE:
 Start with: "This video covers these key takeaways:" (or similar professional intro)
 Then format as a numbered list with timestamps. Each entry should be comprehensive:
-1. [TIMESTAMP] Main takeaway title - Detailed 2-4 sentence explanation with full context, reasoning, examples, and actionable guidance.
+1. (TIMESTAMP) Main takeaway title - Detailed 2-4 sentence explanation with full context, reasoning, examples, and actionable guidance.
 
 CRITICAL: Start with a professional intro line like "This video covers these key takeaways:" then go immediately into the numbered list. Do NOT write "Here are the Top 7..." or "Here's what I learned" or numbered headers like "## Key Takeaways".`;
 }
@@ -228,7 +228,7 @@ FORMATTING:
 - Use ## for section headers
 - Use - for bullet points
 - Use numbered lists (1., 2., 3.) where appropriate
-- Include ALL timestamps in [MM:SS] or [HH:MM:SS] format
+- Include ALL timestamps in MM:SS or HH:MM:SS format (no brackets)
 - Use simple, classy emojis sparingly (✓, →, ⏰, 📌, etc.)
 - NO markdown styling like **bold** or *italic*
 
