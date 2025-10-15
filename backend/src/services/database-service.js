@@ -8,7 +8,8 @@ class DatabaseService {
     async getCategories() {
         const result = await pool.query(`
             SELECT id, name, table_name, notion_database_id, notion_database_name,
-                   total_videos, completed_videos, min_view_threshold
+                   total_videos, completed_videos, min_view_threshold,
+                   created_at, updated_at
             FROM categories
             ORDER BY id
         `);
