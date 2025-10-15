@@ -87,4 +87,40 @@ router.get('/promo-texts', async (req, res) => {
     }
 });
 
+// GET /api/progress/history - Get progress history for date range
+router.get('/history', async (req, res) => {
+    try {
+        const { start_date, end_date } = req.query;
+
+        if (!start_date || !end_date) {
+            return res.status(400).json({
+                success: false,
+                error: 'start_date and end_date are required (format: YYYY-MM-DD)'
+            });
+        }
+
+        const history = await db.getProgressHistory(start_date, end_date);
+
+        // Calculate totals
+        const totalVideos = history.reduce((sum, day) => sum + (day.videos_commented || 0), 0);
+        const avgPerDay = history.length > 0 ? (totalVideos / history.length).toFixed(1) : 0;
+
+        res.json({
+            success: true,
+            start_date,
+            end_date,
+            days: history.length,
+            total_videos: totalVideos,
+            avg_per_day: parseFloat(avgPerDay),
+            history
+        });
+    } catch (error) {
+        console.error('Error fetching progress history:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;

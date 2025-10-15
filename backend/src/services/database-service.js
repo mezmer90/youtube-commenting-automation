@@ -228,6 +228,20 @@ class DatabaseService {
     }
 
     /**
+     * Get progress history for date range
+     */
+    async getProgressHistory(startDate, endDate) {
+        const result = await pool.query(`
+            SELECT date, videos_commented, categories_worked, last_reset_at
+            FROM daily_progress
+            WHERE date BETWEEN $1 AND $2
+            ORDER BY date ASC
+        `, [startDate, endDate]);
+
+        return result.rows;
+    }
+
+    /**
      * Get promo texts
      */
     async getPromoTexts() {
