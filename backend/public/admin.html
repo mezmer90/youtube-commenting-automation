@@ -23,6 +23,10 @@
         }
         .header-text h1 { font-size: 24px; margin-bottom: 5px; }
         .header-text p { opacity: 0.9; font-size: 14px; }
+        .header-links {
+            display: flex;
+            gap: 10px;
+        }
         .header a {
             background: #27ae60;
             color: white;
@@ -33,6 +37,10 @@
             font-size: 14px;
         }
         .header a:hover { background: #229954; }
+        .header a.analytics {
+            background: #9b59b6;
+        }
+        .header a.analytics:hover { background: #8e44ad; }
 
         .top-panel { background: #ecf0f1; padding: 20px 30px; border-bottom: 2px solid #bdc3c7; }
         .search-section { margin-bottom: 20px; }
@@ -89,7 +97,10 @@
                 <h1>YouTube Video Search & Management</h1>
                 <p>Search YouTube, filter results, and bulk-add videos to categories</p>
             </div>
-            <a href="/categories.html">📁 Manage Categories</a>
+            <div class="header-links">
+                <a href="/analytics.html" class="analytics">📊 Analytics</a>
+                <a href="/categories.html">📁 Categories</a>
+            </div>
         </div>
 
         <div class="top-panel">

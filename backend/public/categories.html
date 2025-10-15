@@ -24,6 +24,10 @@
             align-items: center;
         }
         .header h1 { font-size: 24px; }
+        .header-links {
+            display: flex;
+            gap: 10px;
+        }
         .header a {
             background: #3498db;
             color: white;
@@ -33,6 +37,10 @@
             font-weight: 600;
         }
         .header a:hover { background: #2980b9; }
+        .header a.analytics {
+            background: #9b59b6;
+        }
+        .header a.analytics:hover { background: #8e44ad; }
 
         .stats-bar {
             background: white;
@@ -227,7 +235,10 @@
     <div class="container">
         <div class="header">
             <h1>📁 Category Management</h1>
-            <a href="/admin.html">← Back to Admin Panel</a>
+            <div class="header-links">
+                <a href="/analytics.html" class="analytics">📊 Analytics</a>
+                <a href="/admin.html">← Admin Panel</a>
+            </div>
         </div>
 
         <div class="stats-bar">
