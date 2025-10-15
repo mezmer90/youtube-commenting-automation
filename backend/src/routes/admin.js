@@ -315,15 +315,19 @@ router.post('/create-category', async (req, res) => {
 
         console.log(`Creating new category: ${name} (${tableName})`);
 
-        // Create category record
+        // Create category record (ON CONFLICT to handle edge case of existing record)
         await pool.query(`
             INSERT INTO categories (name, table_name, min_view_threshold)
             VALUES ($1, $2, $3)
+            ON CONFLICT (name) DO UPDATE SET
+                table_name = EXCLUDED.table_name,
+                min_view_threshold = EXCLUDED.min_view_threshold,
+                updated_at = NOW()
         `, [name, tableName, min_view_threshold]);
 
-        // Create category videos table
+        // Create category videos table (IF NOT EXISTS for database inconsistency recovery)
         await pool.query(`
-            CREATE TABLE ${tableName} (
+            CREATE TABLE IF NOT EXISTS ${tableName} (
                 id SERIAL PRIMARY KEY,
                 video_id VARCHAR(20) NOT NULL UNIQUE,
                 url TEXT NOT NULL,
@@ -355,8 +359,8 @@ router.post('/create-category', async (req, res) => {
                 updated_at TIMESTAMP DEFAULT NOW()
             );
 
-            CREATE INDEX idx_${tableName}_video_id ON ${tableName}(video_id);
-            CREATE INDEX idx_${tableName}_commented_status ON ${tableName}(commented_status);
+            CREATE INDEX IF NOT EXISTS idx_${tableName}_video_id ON ${tableName}(video_id);
+            CREATE INDEX IF NOT EXISTS idx_${tableName}_commented_status ON ${tableName}(commented_status);
         `);
 
         const category = await db.getCategoryByName(name);
