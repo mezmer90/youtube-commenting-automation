@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Extension Icons</title>
+</head>
+<body>
+    <h1>Generating Icons...</h1>
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas48" width="48" height="48"></canvas>
+    <canvas id="canvas128" width="128" height="128"></canvas>
+    <div id="output"></div>
+
+    <script>
+        // Function to create icon
+        function createIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+
+            // Background - YouTube Blue
+            ctx.fillStyle = '#065fd4';
+            ctx.fillRect(0, 0, size, size);
+
+            // Add rounded corners
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size / 8);
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+
+            // White text "YT"
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('YT', size / 2, size / 2);
+
+            // Comment bubble accent
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = size / 16;
+            ctx.beginPath();
+            const bubbleSize = size * 0.25;
+            ctx.roundRect(size * 0.65, size * 0.65, bubbleSize, bubbleSize, bubbleSize / 4);
+            ctx.stroke();
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // Generate all icons
+        const icon16 = createIcon(document.getElementById('canvas16'), 16);
+        const icon48 = createIcon(document.getElementById('canvas48'), 48);
+        const icon128 = createIcon(document.getElementById('canvas128'), 128);
+
+        // Create download links
+        const output = document.getElementById('output');
+        output.innerHTML = `
+            <h2>Icons Generated! Right-click and "Save As":</h2>
+            <p><a href="${icon16}" download="icon16.png">Download icon16.png</a></p>
+            <p><a href="${icon48}" download="icon48.png">Download icon48.png</a></p>
+            <p><a href="${icon128}" download="icon128.png">Download icon128.png</a></p>
+
+            <h2>Or use these base64 strings:</h2>
+            <h3>icon16.png:</h3>
+            <textarea style="width:100%;height:100px">${icon16}</textarea>
+
+            <h3>icon48.png:</h3>
+            <textarea style="width:100%;height:100px">${icon48}</textarea>
+
+            <h3>icon128.png:</h3>
+            <textarea style="width:100%;height:100px">${icon128}</textarea>
+        `;
+
+        // Auto-download (optional)
+        function downloadAll() {
+            ['icon16.png', 'icon48.png', 'icon128.png'].forEach((name, i) => {
+                const data = [icon16, icon48, icon128][i];
+                const link = document.createElement('a');
+                link.href = data;
+                link.download = name;
+                link.click();
+            });
+        }
+
+        // Uncomment to auto-download:
+        // setTimeout(downloadAll, 1000);
+    </script>
+</body>
+</html>

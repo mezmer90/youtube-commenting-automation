@@ -1,0 +1,49 @@
+# Environment variables and API keys
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+
+# Dependencies
+node_modules/
+package-lock.json
+backend/node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+
+# Database files
+*.db
+*.sqlite
+database/*.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Old extensions - exclude from version control
+youtube-commenter-ai-v2/
+youtube-commenter-ai-v2.zip
+youtube-summarizer-v8.0-stripe/
+youtube-summarizer-backend-v8-stripe/
+
+# Extension zip files
+*.zip

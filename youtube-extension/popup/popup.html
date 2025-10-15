@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Commenter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>YouTube Commenter</h1>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </div>
+
+    <!-- Daily Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>Today's Progress</span>
+        <span id="progressCount">0/100</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-info">
+        <span id="progressPercentage">0%</span>
+        <span id="timeUntilReset">Resets in: --:--</span>
+      </div>
+    </div>
+
+    <!-- Category Selection -->
+    <div class="category-section">
+      <label for="categorySelect">Category:</label>
+      <select id="categorySelect">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+
+    <!-- Main Action Button -->
+    <button id="nextVideoBtn" class="btn-primary">
+      Next Video
+    </button>
+
+    <!-- Current Video Info -->
+    <div id="currentVideo" class="video-info" style="display: none;">
+      <h3>Current Video</h3>
+      <div id="videoTitle"></div>
+      <div id="videoChannel"></div>
+      <div id="videoViews"></div>
+    </div>
+
+    <!-- Processing Status -->
+    <div id="processingStatus" class="processing-status" style="display: none;">
+      <div class="spinner"></div>
+      <div id="processingMessage">Processing...</div>
+    </div>
+
+    <!-- Generated Comment Display -->
+    <div id="commentDisplay" class="comment-display" style="display: none;">
+      <div class="comment-header">
+        <h3>Generated Comment</h3>
+        <button id="copyCommentBtn" class="btn-copy">Copy</button>
+      </div>
+      <textarea id="generatedComment" readonly></textarea>
+      <div class="comment-info">
+        <span id="commentType"></span>
+        <span id="commentLength"></span>
+      </div>
+    </div>
+
+    <!-- Log Output -->
+    <div class="log-section">
+      <h3>Activity Log</h3>
+      <div id="logOutput" class="log-output"></div>
+    </div>
+
+    <!-- Settings Button -->
+    <button id="settingsBtn" class="btn-secondary">
+      Settings
+    </button>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="closeSettings" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-group">
+          <label>Notion Integration</label>
+          <input type="text" id="notionApiKey" placeholder="Notion API Key">
+          <button id="saveNotion" class="btn-secondary">Save Notion API Key</button>
+        </div>
+        <div class="setting-group">
+          <label>Backend API URL</label>
+          <input type="text" id="apiUrl" readonly value="https://youtube-commenting-automation-production.up.railway.app">
+        </div>
+        <div class="setting-group">
+          <label>Comment Type Preference</label>
+          <select id="commentTypePreference">
+            <option value="random">Random (Recommended)</option>
+            <option value="summary">Always Summary</option>
+            <option value="chapters">Always Chapters</option>
+            <option value="takeaways">Always Takeaways</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Promo Text Settings</label>
+          <textarea id="promoTexts" placeholder="Enter promo texts (one per line)"></textarea>
+          <div class="promo-options">
+            <label>
+              <input type="checkbox" id="promoEnabled" checked>
+              Enable promo text
+            </label>
+            <label>
+              <input type="checkbox" id="promoAllowNone" checked>
+              Sometimes skip promo (random)
+            </label>
+          </div>
+          <button id="savePromos" class="btn-secondary">Save Promo Texts</button>
+        </div>
+        <div class="setting-group">
+          <button id="clearStorage" class="btn-danger">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="../utils/storage.js"></script>
+  <script src="../utils/api.js"></script>
+  <script src="../utils/youtube.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
