@@ -114,6 +114,7 @@ router.post('/process', async (req, res) => {
         const selectedType = comment_type || types[Math.floor(Math.random() * types.length)];
 
         console.log(`🎲 Processing video with type: ${selectedType}`);
+        console.log('🔥🔥🔥 NEW CODE DEPLOYED - COMMIT 741ebb3 🔥🔥🔥');
 
         let summary, comment;
 
