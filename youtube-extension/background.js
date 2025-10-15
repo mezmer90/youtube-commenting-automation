@@ -536,13 +536,27 @@ async function processVideoInTab(tabId, video, categoryId) {
 
         // Now save video to the correct database
         console.log('[NOTION] Saving video to Notion database...');
-        const notionResult = await saveToNotion({
+
+        // Merge backend data for missing fields (likes, subscribers, upload date)
+        const notionData = {
           ...metadata,
           category: categoryName,
           summary: summary,
           comment: finalComment,
-          transcript: transcript
-        }, {
+          transcript: transcript,
+          // Override with backend data for these 3 fields (more reliable than page extraction)
+          likeCount: video.likes || metadata.likeCount,
+          subscriberCount: video.channel_subscriber_count || metadata.subscriberCount,
+          uploadDate: video.upload_date || metadata.uploadDate
+        };
+
+        console.log('[NOTION] Using backend data for:', {
+          likes: video.likes,
+          subscribers: video.channel_subscriber_count,
+          uploadDate: video.upload_date
+        });
+
+        const notionResult = await saveToNotion(notionData, {
           apiKey: notionSettings.apiKey,
           databaseId: notionDatabaseId
         });

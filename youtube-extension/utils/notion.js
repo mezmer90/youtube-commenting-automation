@@ -382,6 +382,17 @@ class NotionIntegration {
   createContentBlocks(videoData) {
     const blocks = [];
 
+    // Add YouTube video embed at the top
+    if (videoData.url) {
+      blocks.push({
+        object: 'block',
+        type: 'embed',
+        embed: {
+          url: videoData.url
+        }
+      });
+    }
+
     // Add video info section
     blocks.push({
       object: 'block',
