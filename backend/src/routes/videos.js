@@ -16,6 +16,15 @@ router.get('/next', async (req, res) => {
             });
         }
 
+        // Get category info
+        const category = await db.getCategoryById(category_id);
+        if (!category) {
+            return res.status(404).json({
+                success: false,
+                error: 'Category not found'
+            });
+        }
+
         const video = await db.getNextVideo(category_id);
 
         if (!video) {
@@ -25,6 +34,10 @@ router.get('/next', async (req, res) => {
                 message: 'No pending videos found in this category'
             });
         }
+
+        // Add category name to video object for Notion integration
+        video.category_name = category.name;
+        video.category_id = category.id;
 
         res.json({
             success: true,
