@@ -39,6 +39,17 @@ tmp/
 temp/
 *.tmp
 
+# Non-backend files (this is a backend-only repository)
+youtube-extension/
+database/
+.claude/
+check-db.py
+check-videos.py
+yt-api-for-data.js
+PROJECT_STATUS.md
+SYSTEM_OVERVIEW.md
+TECHNICAL_SPECIFICATION.md
+
 # Old extensions - exclude from version control
 youtube-commenter-ai-v2/
 youtube-commenter-ai-v2.zip
