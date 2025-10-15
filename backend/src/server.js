@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const path = require('path');
 const { pool } = require('./config/database');
 
 const app = express();
@@ -17,7 +18,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from public directory
-app.use(express.static('public'));
+const publicPath = path.join(__dirname, '..', 'public');
+console.log(`Serving static files from: ${publicPath}`);
+app.use(express.static(publicPath));
 
 // Request logging
 app.use((req, res, next) => {
