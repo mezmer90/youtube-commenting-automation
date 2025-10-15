@@ -16,6 +16,9 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 // Request logging
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -28,6 +31,7 @@ const videosRoutes = require('./routes/videos');
 const progressRoutes = require('./routes/progress');
 const populateRoutes = require('./routes/populate');
 const aiRoutes = require('./routes/ai');
+const adminRoutes = require('./routes/admin');
 
 // API Routes
 app.use('/api/categories', categoriesRoutes);
@@ -35,6 +39,7 @@ app.use('/api/videos', videosRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/populate', populateRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

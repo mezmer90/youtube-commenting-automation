@@ -4,6 +4,13 @@
 .env.*.local
 backend/.env
 backend/.env.local
+*.pem
+*.key
+*.cert
+*credentials*.json
+*secrets*.json
+config/secrets.js
+config/credentials.js
 
 # Dependencies
 node_modules/
@@ -24,6 +31,17 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.metadata/
+*.sublime-project
+*.sublime-workspace
+.vs/
+*.code-workspace
 
 # Build outputs
 dist/

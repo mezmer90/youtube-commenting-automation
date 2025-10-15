@@ -98,6 +98,7 @@ class YouTubeAPIService {
                     url: `https://www.youtube.com/watch?v=${video.id}`,
                     title: snippet.title || '',
                     channel_name: snippet.channelTitle || '',
+                    channel_id: snippet.channelId || '',
                     channel_url: `https://www.youtube.com/channel/${snippet.channelId}`,
                     view_count: parseInt(statistics.viewCount || 0),
                     likes: parseInt(statistics.likeCount || 0),
@@ -143,6 +144,137 @@ class YouTubeAPIService {
         } catch (error) {
             console.error('Error fetching channel subscribers:', error.message);
             return '0';
+        }
+    }
+
+    /**
+     * Get subscriber counts for multiple channels (batch)
+     * @param {Array<string>} channelIds - Array of channel IDs
+     * @returns {Promise<Object>} Object mapping channelId -> subscriber count
+     */
+    async getMultipleChannelSubscribers(channelIds) {
+        if (!channelIds || channelIds.length === 0) {
+            return {};
+        }
+
+        try {
+            const results = {};
+
+            // YouTube API allows up to 50 IDs per request
+            for (let i = 0; i < channelIds.length; i += 50) {
+                const batch = channelIds.slice(i, i + 50);
+
+                const channelUrl = `${this.baseUrl}/channels`;
+                const params = {
+                    part: 'statistics',
+                    id: batch.join(','),
+                    key: this.apiKey
+                };
+
+                const response = await axios.get(channelUrl, { params });
+
+                if (response.data.items) {
+                    response.data.items.forEach(channel => {
+                        const subscriberCount = channel.statistics.subscriberCount;
+                        results[channel.id] = this.formatNumber(subscriberCount);
+                    });
+                }
+
+                // Rate limiting delay
+                if (i + 50 < channelIds.length) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+
+            return results;
+
+        } catch (error) {
+            console.error('Error fetching multiple channel subscribers:', error.message);
+            return {};
+        }
+    }
+
+    /**
+     * Search videos with pagination support (up to 500 results)
+     * @param {string} keyword - Search keyword
+     * @param {Object} options - Search options
+     * @returns {Promise<Array>} Array of video objects
+     */
+    async searchVideosWithPagination(keyword, options = {}) {
+        const {
+            maxResults = 500,
+            order = 'relevance',
+            publishedAfter = null,
+            regionCode = 'US',
+            relevanceLanguage = 'en'
+        } = options;
+
+        try {
+            console.log(`🔍 Searching YouTube (with pagination): "${keyword}"`);
+
+            let allVideos = [];
+            let pageToken = null;
+            const perPage = 50; // YouTube max per request
+            const maxPages = Math.ceil(Math.min(maxResults, 500) / perPage);
+
+            for (let page = 0; page < maxPages; page++) {
+                const searchUrl = `${this.baseUrl}/search`;
+                const searchParams = {
+                    part: 'id',
+                    type: 'video',
+                    q: keyword,
+                    order,
+                    regionCode,
+                    relevanceLanguage,
+                    maxResults: perPage,
+                    key: this.apiKey
+                };
+
+                if (publishedAfter) {
+                    searchParams.publishedAfter = publishedAfter;
+                }
+
+                if (pageToken) {
+                    searchParams.pageToken = pageToken;
+                }
+
+                const searchResponse = await axios.get(searchUrl, { params: searchParams });
+
+                if (!searchResponse.data.items || searchResponse.data.items.length === 0) {
+                    console.log(`⚠️  No more results at page ${page + 1}`);
+                    break;
+                }
+
+                const videoIds = searchResponse.data.items
+                    .map(item => item.id && item.id.videoId)
+                    .filter(Boolean);
+
+                // Get detailed video info
+                const videos = await this.getVideoDetails(videoIds);
+                allVideos.push(...videos);
+
+                console.log(`   Page ${page + 1}/${maxPages}: ${videos.length} videos (total: ${allVideos.length})`);
+
+                // Check if there's a next page
+                pageToken = searchResponse.data.nextPageToken;
+                if (!pageToken) {
+                    console.log('   No more pages available');
+                    break;
+                }
+
+                // Rate limiting delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            console.log(`✅ Total videos found: ${allVideos.length}`);
+            return allVideos;
+
+        } catch (error) {
+            console.error(`❌ Error searching videos (pagination): "${keyword}":`, error.message);
+            if (error.response) {
+                console.error('API Response:', error.response.data);
+            }
+            throw error;
         }
     }
 
