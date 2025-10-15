@@ -437,6 +437,14 @@ router.delete('/delete-category/:id', async (req, res) => {
 
         console.log(`Deleting category: ${category.name} (${category.table_name})`);
 
+        // Get list of completed videos (to preserve as historical record)
+        const completedVideos = await pool.query(`
+            SELECT video_id FROM ${category.table_name}
+            WHERE commented_status = 'completed'
+        `);
+        const completedVideoIds = completedVideos.rows.map(r => r.video_id);
+        console.log(`   Found ${completedVideoIds.length} completed videos to preserve`);
+
         // Clean up processed_videos table first (remove this category from all entries)
         await pool.query(`
             UPDATE processed_videos
@@ -445,13 +453,14 @@ router.delete('/delete-category/:id', async (req, res) => {
             WHERE $1 = ANY(categories)
         `, [category.name]);
 
-        // Delete entries that have no categories left (orphaned videos)
+        // Delete orphaned videos (no categories left) ONLY if they were never completed
         const deletedResult = await pool.query(`
             DELETE FROM processed_videos
-            WHERE categories = '{}' OR array_length(categories, 1) IS NULL
-        `);
+            WHERE (categories = '{}' OR array_length(categories, 1) IS NULL)
+            AND video_id != ALL($1)
+        `, [completedVideoIds.length > 0 ? completedVideoIds : ['']]);
 
-        console.log(`✅ Cleaned up processed_videos: removed ${deletedResult.rowCount} orphaned entries`);
+        console.log(`✅ Cleaned up processed_videos: removed ${deletedResult.rowCount} pending videos (kept ${completedVideoIds.length} completed)`);
 
         // Drop the videos table
         await pool.query(`DROP TABLE IF EXISTS ${category.table_name}`);
