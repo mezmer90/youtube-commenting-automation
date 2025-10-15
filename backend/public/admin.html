@@ -53,9 +53,15 @@
         .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .create-category { margin-top: 15px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; }
-        .create-category input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; }
-        .create-category button { padding: 8px 16px; background: #ffc107; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .create-category { margin-top: 15px; padding: 15px; background: #e8f5e9; border: 1px solid #4caf50; border-radius: 4px; }
+        .create-category h3 { margin: 0 0 10px 0; color: #2e7d32; font-size: 14px; }
+        .create-category .form-row { display: flex; gap: 10px; align-items: center; }
+        .create-category input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .create-category input[type="text"] { flex: 1; min-width: 200px; }
+        .create-category input[type="number"] { width: 150px; }
+        .create-category button { padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .create-category button:hover { background: #45a049; }
+        .create-category button:disabled { background: #95a5a6; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -99,6 +105,15 @@
                         <label>Max Duration (minutes)</label>
                         <input type="number" id="maxDuration" placeholder="e.g., 30" />
                     </div>
+                </div>
+            </div>
+
+            <div class="create-category">
+                <h3>➕ Create New Category</h3>
+                <div class="form-row">
+                    <input type="text" id="newCategoryName" placeholder="Category name (e.g., 'Fitness & Health')" />
+                    <input type="number" id="newCategoryThreshold" placeholder="Min view threshold" value="100000" />
+                    <button id="createCategoryBtn" onclick="createCategory()">Create Category</button>
                 </div>
             </div>
         </div>
@@ -156,6 +171,51 @@
                     categories.map(c => `<option value="${c.id}">${c.name} (${c.total_videos} videos)</option>`).join('');
             } catch (error) {
                 console.error('Error loading categories:', error);
+                alert('Error loading categories: ' + error.message);
+            }
+        }
+
+        async function createCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const threshold = parseInt(document.getElementById('newCategoryThreshold').value) || 100000;
+
+            if (!name) {
+                alert('Please enter a category name');
+                return;
+            }
+
+            const createBtn = document.getElementById('createCategoryBtn');
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/create-category`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        min_view_threshold: threshold
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to create category');
+                }
+
+                alert(`Success! Category "${name}" created.\nTable: ${data.category.table_name}`);
+
+                // Clear form and reload categories
+                document.getElementById('newCategoryName').value = '';
+                document.getElementById('newCategoryThreshold').value = '100000';
+                await loadCategories();
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create Category';
             }
         }
 
