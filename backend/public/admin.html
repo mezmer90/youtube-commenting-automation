@@ -257,16 +257,22 @@
                     throw new Error(data.error || `HTTP ${res.status}: Failed to create category`);
                 }
 
-                alert(`Success! Category "${name}" created.\nTable: ${data.category.table_name}\nID: ${data.category.id}`);
+                // Show appropriate message based on whether category was newly created or already existed
+                if (data.alreadyExisted) {
+                    alert(`Category "${name}" already exists!\n\nUsing existing category.\nTable: ${data.category.table_name}\nID: ${data.category.id}`);
+                } else {
+                    alert(`Success! Category "${name}" created.\n\nTable: ${data.category.table_name}\nID: ${data.category.id}`);
+                }
 
-                // Clear form and reload categories
+                // Clear form
                 document.getElementById('newCategoryName').value = '';
-                await loadCategories();
 
             } catch (error) {
                 console.error('Create category error:', error);
                 alert('Error creating category:\n\n' + error.message + '\n\nCheck browser console for details (F12)');
             } finally {
+                // Always reload categories, even on error (in case category was created)
+                await loadCategories();
                 createBtn.disabled = false;
                 createBtn.textContent = 'Create Category';
             }

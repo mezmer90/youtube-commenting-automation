@@ -283,7 +283,7 @@ router.post('/bulk-add', async (req, res) => {
 
 /**
  * POST /api/admin/create-category
- * Create a new category
+ * Create a new category (idempotent - returns existing if already exists)
  */
 router.post('/create-category', async (req, res) => {
     try {
@@ -296,12 +296,24 @@ router.post('/create-category', async (req, res) => {
             });
         }
 
+        // Check if category already exists
+        const existing = await db.getCategoryByName(name);
+        if (existing) {
+            console.log(`Category "${name}" already exists, returning existing category`);
+            return res.json({
+                success: true,
+                category: existing,
+                message: 'Category already exists',
+                alreadyExisted: true
+            });
+        }
+
         // Generate table name
         const tableName = 'videos_' + name.toLowerCase()
             .replace(/[^a-z0-9\s]/g, '')
             .replace(/\s+/g, '_');
 
-        console.log(`Creating category: ${name} (${tableName})`);
+        console.log(`Creating new category: ${name} (${tableName})`);
 
         // Create category record
         await pool.query(`
