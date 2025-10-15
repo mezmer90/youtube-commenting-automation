@@ -153,7 +153,11 @@ router.post('/process', async (req, res) => {
             summary,           // Always a full summary for Notion
             comment,           // Full content (summary/chapters/takeaways) for YouTube
             comment_type: selectedType,
-            metadata: metadata || {}
+            metadata: metadata || {},
+            // DISTINCTIVE MARKER - PROOF OF NEW CODE DEPLOYMENT
+            code_version: 'v2.0-NEW-PROMPTS',
+            deployed_at: '2025-10-15T17:35:00Z',
+            commit_hash: '5c783cf'
         });
     } catch (error) {
         console.error('Error in complete processing:', error);
