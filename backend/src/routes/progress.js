@@ -41,33 +41,18 @@ router.get('/daily', async (req, res) => {
 });
 
 // POST /api/progress/increment - Increment daily counter
+// DEPRECATED: Progress is now automatically tracked in /api/videos/update-status
 router.post('/increment', async (req, res) => {
-    try {
-        const { category_name } = req.body;
+    console.warn('⚠️ DEPRECATED: /api/progress/increment called - progress is now auto-tracked');
 
-        if (!category_name) {
-            return res.status(400).json({
-                success: false,
-                error: 'category_name is required'
-            });
-        }
-
-        const result = await db.incrementDailyProgress(category_name);
-
-        res.json({
-            success: true,
-            new_count: result.new_count,
-            target: 100,
-            remaining: 100 - result.new_count,
-            date: result.date_val
-        });
-    } catch (error) {
-        console.error('Error incrementing progress:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    // Return success but don't actually increment to avoid double-counting
+    res.json({
+        success: true,
+        message: 'This endpoint is deprecated. Progress is now automatically tracked when updating video status.',
+        new_count: 0,
+        target: 100,
+        remaining: 100
+    });
 });
 
 // GET /api/progress/promo-texts - Get promo texts
