@@ -386,10 +386,12 @@
             document.getElementById('completionRate').textContent = `${completionRate}% completion rate`;
             document.getElementById('activeCategories').textContent = activeCategories;
 
-            // Categories worked today
+            // Categories worked today (deduplicate to show unique categories only)
             const workedDiv = document.getElementById('workedCategories');
             if (progress.categories_worked && progress.categories_worked.length > 0) {
-                workedDiv.innerHTML = progress.categories_worked.map(cat =>
+                // Get unique categories using Set
+                const uniqueCategories = [...new Set(progress.categories_worked)];
+                workedDiv.innerHTML = uniqueCategories.map(cat =>
                     `<span class="category-badge">${cat}</span>`
                 ).join('');
             } else {
