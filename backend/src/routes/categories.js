@@ -70,4 +70,44 @@ router.get('/:id/stats', async (req, res) => {
     }
 });
 
+// PATCH /api/categories/:id/notion - Update Notion database info for category
+router.patch('/:id/notion', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { notion_database_id, notion_database_name } = req.body;
+
+        if (!notion_database_id || !notion_database_name) {
+            return res.status(400).json({
+                success: false,
+                error: 'notion_database_id and notion_database_name are required'
+            });
+        }
+
+        console.log(`Updating Notion info for category ${id}:`, { notion_database_id, notion_database_name });
+
+        const { pool } = require('../config/database');
+        await pool.query(`
+            UPDATE categories
+            SET notion_database_id = $1,
+                notion_database_name = $2,
+                updated_at = NOW()
+            WHERE id = $3
+        `, [notion_database_id, notion_database_name, id]);
+
+        const category = await db.getCategoryById(id);
+
+        res.json({
+            success: true,
+            category
+        });
+
+    } catch (error) {
+        console.error('Error updating category Notion info:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;

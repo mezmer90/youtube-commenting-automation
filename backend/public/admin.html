@@ -137,6 +137,9 @@
                         <label>Max Duration (minutes)</label>
                         <input type="number" id="maxDuration" placeholder="e.g., 30" />
                     </div>
+                    <div class="filter-group" style="display: flex; align-items: flex-end;">
+                        <button id="refilterBtn" onclick="applyFilters()" style="width: 100%; padding: 8px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;" disabled>Apply Filters</button>
+                    </div>
                 </div>
             </div>
 
@@ -186,10 +189,29 @@
         let duplicates = {};
         let categories = [];
 
-        // Load categories on page load
+        // Load categories on page load and initialize database
         window.onload = async () => {
+            await initializeDatabase();
             await loadCategories();
         };
+
+        async function initializeDatabase() {
+            try {
+                console.log('Initializing database tables...');
+                const res = await fetch(`${API_BASE}/api/admin/init-db`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    console.log('✅ Database initialized successfully');
+                } else {
+                    console.warn('Database initialization failed:', data.error);
+                }
+            } catch (error) {
+                console.error('Error initializing database:', error);
+                // Don't show alert - this is a background operation
+            }
+        }
 
         async function loadCategories() {
             try {
@@ -230,18 +252,20 @@
 
                 const data = await res.json();
 
-                if (!data.success) {
-                    throw new Error(data.error || 'Failed to create category');
+                if (!res.ok || !data.success) {
+                    console.error('Create category error:', data);
+                    throw new Error(data.error || `HTTP ${res.status}: Failed to create category`);
                 }
 
-                alert(`Success! Category "${name}" created.\nTable: ${data.category.table_name}`);
+                alert(`Success! Category "${name}" created.\nTable: ${data.category.table_name}\nID: ${data.category.id}`);
 
                 // Clear form and reload categories
                 document.getElementById('newCategoryName').value = '';
                 await loadCategories();
 
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Create category error:', error);
+                alert('Error creating category:\n\n' + error.message + '\n\nCheck browser console for details (F12)');
             } finally {
                 createBtn.disabled = false;
                 createBtn.textContent = 'Create Category';
@@ -296,8 +320,12 @@
                 status.style.display = 'none';
                 videoTable.style.display = 'table';
 
+                // Enable filter button after search
+                document.getElementById('refilterBtn').disabled = false;
+
             } catch (error) {
                 status.innerHTML = `<p style="color:#e74c3c;">Error: ${error.message}</p>`;
+                console.error('Search error details:', error);
             } finally {
                 searchBtn.disabled = false;
                 searchBtn.textContent = 'Search';
@@ -399,11 +427,12 @@
 
                 const data = await res.json();
 
-                if (!data.success) {
-                    throw new Error(data.error || 'Failed to add videos');
+                if (!res.ok || !data.success) {
+                    console.error('Bulk add error:', data);
+                    throw new Error(data.error || `HTTP ${res.status}: Failed to add videos`);
                 }
 
-                alert(`Success!\nInserted: ${data.inserted}\nSkipped (duplicates): ${data.skipped}\nErrors: ${data.errors}`);
+                alert(`Success! Videos added to "${data.category}":\n\n✅ Inserted: ${data.inserted}\n⏭️ Skipped (duplicates): ${data.skipped}\n❌ Errors: ${data.errors}\n📊 Total: ${data.total}`);
 
                 // Refresh categories and re-check duplicates
                 await loadCategories();
@@ -420,7 +449,8 @@
                 updateStats();
 
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Bulk add error:', error);
+                alert('Error adding videos:\n\n' + error.message + '\n\nCheck browser console for details (F12)');
             } finally {
                 addBtn.disabled = false;
                 addBtn.textContent = 'Add Selected to Category';

@@ -10,6 +10,74 @@ importScripts('utils/notion.js');
 console.log('YouTube Commenter Extension: Background service worker started');
 
 /**
+ * Get or create Notion database for a category
+ * This is the SMART logic that manages category-specific databases
+ */
+async function getOrCreateNotionDatabase(categoryId, categoryName, parentPageId, apiKey) {
+  try {
+    console.log(`[NOTION DB] Checking database for category: ${categoryName} (ID: ${categoryId})`);
+
+    // Check if this category already has a database
+    const existingDatabase = await StorageManager.getCategoryNotionDatabase(categoryId);
+
+    if (existingDatabase && existingDatabase.databaseId) {
+      console.log(`[NOTION DB] ✅ Found existing database: ${existingDatabase.databaseName}`);
+      console.log(`[NOTION DB] Database ID: ${existingDatabase.databaseId}`);
+      return {
+        success: true,
+        databaseId: existingDatabase.databaseId,
+        databaseName: existingDatabase.databaseName,
+        isNew: false
+      };
+    }
+
+    // No database exists for this category → CREATE NEW ONE
+    console.log(`[NOTION DB] ⚡ No database found for category "${categoryName}". Creating new database...`);
+
+    const notion = new NotionIntegration(apiKey, null);
+    const createResult = await notion.createDatabase(parentPageId, categoryName);
+
+    if (!createResult.success) {
+      console.error(`[NOTION DB] ❌ Failed to create database:`, createResult.error);
+      return { success: false, error: createResult.error };
+    }
+
+    const newDatabaseId = createResult.database.id;
+    const databaseName = `${categoryName} - Video Summaries`;
+
+    console.log(`[NOTION DB] ✅ Created new database: ${databaseName}`);
+    console.log(`[NOTION DB] Database ID: ${newDatabaseId}`);
+    console.log(`[NOTION DB] Database URL: ${createResult.database.url}`);
+
+    // Store mapping in Chrome storage
+    await StorageManager.setNotionDatabase(categoryId, newDatabaseId, databaseName);
+    console.log(`[NOTION DB] ✅ Stored mapping: Category ${categoryId} → Database ${newDatabaseId}`);
+
+    // Sync with backend for cross-device persistence
+    console.log(`[NOTION DB] Syncing database mapping with backend...`);
+    try {
+      await api.syncNotionDatabase(categoryId, newDatabaseId, databaseName);
+      console.log(`[NOTION DB] ✅ Synced with backend successfully`);
+    } catch (syncError) {
+      console.error(`[NOTION DB] ⚠️ Failed to sync with backend (non-blocking):`, syncError.message);
+      // Continue even if backend sync fails - Chrome storage is primary
+    }
+
+    return {
+      success: true,
+      databaseId: newDatabaseId,
+      databaseName: databaseName,
+      databaseUrl: createResult.database.url,
+      isNew: true
+    };
+
+  } catch (error) {
+    console.error('[NOTION DB] ❌ Error in getOrCreateNotionDatabase:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Save video data to Notion
  */
 async function saveToNotion(videoData, notionSettings) {
@@ -398,21 +466,56 @@ async function processVideoInTab(tabId, video, categoryId) {
       priority: 2
     });
 
-    // 10. Save to Notion (if configured)
+    // 10. Save to Notion (SMART - auto-creates databases per category)
     console.log('[NOTION] Checking Notion configuration...');
     let notionPageId = null;
+    let notionDatabaseId = null;
     try {
       const notionSettings = await StorageManager.getNotionSettings();
       console.log('Notion settings:', notionSettings);
 
-      if (notionSettings?.apiKey && notionSettings?.databaseId) {
-        console.log('[NOTION] Saving to Notion...');
+      // Check for API Key + Parent Page ID (new system)
+      if (notionSettings?.apiKey && notionSettings?.parentPageId) {
+        console.log('[NOTION] ✅ Notion configured with API Key + Parent Page ID');
+
+        // Get category name from video object
+        const categoryName = video.category_name || 'Unknown Category';
+        console.log(`[NOTION] Category: ${categoryName} (ID: ${categoryId})`);
+
+        // SMART: Get or create database for this category
+        const dbResult = await getOrCreateNotionDatabase(
+          categoryId,
+          categoryName,
+          notionSettings.parentPageId,
+          notionSettings.apiKey
+        );
+
+        if (!dbResult.success) {
+          console.error('[NOTION] ❌ Failed to get/create database:', dbResult.error);
+          throw new Error('Failed to manage Notion database: ' + dbResult.error);
+        }
+
+        notionDatabaseId = dbResult.databaseId;
+
+        if (dbResult.isNew) {
+          console.log(`[NOTION] 🎉 NEW DATABASE CREATED: "${dbResult.databaseName}"`);
+          console.log(`[NOTION] Database URL: ${dbResult.databaseUrl}`);
+        } else {
+          console.log(`[NOTION] Using existing database: "${dbResult.databaseName}"`);
+        }
+
+        // Now save video to the correct database
+        console.log('[NOTION] Saving video to Notion database...');
         const notionResult = await saveToNotion({
           ...metadata,
+          category: categoryName,
           summary: summary,
           comment: finalComment,
           transcript: transcript
-        }, notionSettings);
+        }, {
+          apiKey: notionSettings.apiKey,
+          databaseId: notionDatabaseId
+        });
 
         console.log('[NOTION] Save result:', notionResult);
         if (notionResult.success) {
@@ -422,7 +525,7 @@ async function processVideoInTab(tabId, video, categoryId) {
           console.warn('⚠️ Notion save unsuccessful:', notionResult.error);
         }
       } else {
-        console.log('[NOTION] Not configured, skipping');
+        console.log('[NOTION] Not configured (missing API key or parent page ID), skipping');
       }
     } catch (notionError) {
       console.error('❌ Notion save failed (non-blocking):', notionError);
