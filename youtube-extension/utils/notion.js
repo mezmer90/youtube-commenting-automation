@@ -467,6 +467,41 @@ class NotionIntegration {
       // Convert summary text to blocks
       const summaryBlocks = this.textToBlocks(videoData.summary);
       blocks.push(...summaryBlocks);
+
+      // Add promotional callout after summary
+      blocks.push({
+        object: 'block',
+        type: 'divider',
+        divider: {}
+      });
+
+      blocks.push({
+        object: 'block',
+        type: 'callout',
+        callout: {
+          rich_text: [
+            {
+              type: 'text',
+              text: { content: 'This summary was created with YT Video Summarizer + Note Taker\n🔗 ' }
+            },
+            {
+              type: 'text',
+              text: {
+                content: 'https://productivity.short.gy/yt-summarizer-chrome',
+                link: { url: 'https://productivity.short.gy/yt-summarizer-chrome' }
+              }
+            }
+          ],
+          icon: { type: 'emoji', emoji: '🎥' },
+          color: 'gray_background'
+        }
+      });
+
+      blocks.push({
+        object: 'block',
+        type: 'divider',
+        divider: {}
+      });
     }
 
     // Add chapters if available
