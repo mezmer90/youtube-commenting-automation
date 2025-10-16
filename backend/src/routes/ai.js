@@ -183,16 +183,40 @@ router.post('/process', async (req, res) => {
         }
 
         // Check word count and condense if needed (YouTube 1200-word limit)
-        const wordCount = countWords(comment);
+        let wordCount = countWords(comment);
         console.log(`📊 Comment word count: ${wordCount} words`);
 
-        if (wordCount > 1200) {
-            console.log('⚠️  Comment exceeds 1200 words, condensing...');
+        // Retry loop for word count validation (max 3 attempts)
+        const MAX_RETRIES = 3;
+        let retryCount = 0;
+
+        while (wordCount > 1200 && retryCount < MAX_RETRIES) {
+            retryCount++;
+            console.log(`⚠️  Comment exceeds 1200 words (${wordCount}), condensing... (Attempt ${retryCount}/${MAX_RETRIES})`);
+
             comment = await ai.condenseComment(comment, 1200);
             // Strip markdown again after condensing (in case AI added any)
             comment = stripMarkdownForYouTube(comment);
+
             const newWordCount = countWords(comment);
-            console.log(`✅ Comment condensed: ${wordCount} → ${newWordCount} words`);
+            console.log(`   Result: ${wordCount} → ${newWordCount} words`);
+
+            if (newWordCount <= 1200) {
+                console.log(`✅ Comment successfully condensed to ${newWordCount} words`);
+                wordCount = newWordCount;
+                break;
+            } else {
+                console.log(`   ⚠️ Still over limit (${newWordCount} words)...`);
+                wordCount = newWordCount;
+            }
+        }
+
+        // Final status check
+        const finalWordCount = countWords(comment);
+        if (finalWordCount > 1200) {
+            console.warn(`⚠️  WARNING: Comment still ${finalWordCount} words after ${retryCount} attempts. User will need to manually shorten before posting.`);
+        } else {
+            console.log(`✅ Final comment is ${finalWordCount} words (within 1200 limit)`);
         }
 
         res.json({
